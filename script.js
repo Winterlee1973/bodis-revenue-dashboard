@@ -97,12 +97,13 @@ function processRevenueData(data) {
     // Process Bodis v2 API response structure
     if (data.metrics && data.metrics.data && Array.isArray(data.metrics.data)) {
         revenueData.daily = data.metrics.data.map(day => ({
-            date: new Date(day.date),
+            date: new Date(day.date + 'T00:00:00'), // Ensure local timezone interpretation
             revenue: parseFloat(day.credited_revenue || 0),
             visits: day.visits || 0,
             clicks: day.clicks || 0,
             ctr: day.ctr || 0,
-            rpm: day.rpm || 0
+            rpm: day.rpm || 0,
+            rawDate: day.date // Keep original for debugging
         }));
         
         // Use the total from API if available
@@ -114,10 +115,21 @@ function processRevenueData(data) {
         }
     }
     
-    // Get today's revenue
-    const today = new Date().toDateString();
-    const todayData = revenueData.daily.find(day => day.date.toDateString() === today);
+    // Get today's revenue - fix date comparison
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const todayData = revenueData.daily.find(day => {
+        const dayStr = day.date.toISOString().split('T')[0];
+        return dayStr === todayStr;
+    });
     revenueData.todayRevenue = todayData ? todayData.revenue : 0;
+    
+    console.log('🗓️ Today lookup:', {
+        todayStr,
+        availableDates: revenueData.daily.map(d => d.date.toISOString().split('T')[0]),
+        foundToday: !!todayData,
+        todayRevenue: revenueData.todayRevenue
+    });
     
     // Calculate average daily revenue
     revenueData.averageDaily = revenueData.daily.length > 0 ? 
