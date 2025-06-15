@@ -1,0 +1,27 @@
+{
+  "name": "bodis-revenue-dashboard",
+  "version": "1.0.0",
+  "description": "A web dashboard to display Bodis revenue data for the past 7 days",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build": "echo 'Static site - no build needed'",
+    "deploy": "netlify deploy --prod"
+  },
+  "keywords": [
+    "bodis",
+    "revenue",
+    "dashboard",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

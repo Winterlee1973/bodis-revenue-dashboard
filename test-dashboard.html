@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Dashboard API</title>
+</head>
+<body>
+    <h1>Testing Bodis API Connection</h1>
+    <div id="status">Loading...</div>
+    <div id="results"></div>
+
+    <script>
+        const BODIS_API_KEY = 'bBS3E56k6tyW4MjmBvTQql6QH7KE9shd';
+        const BODIS_API_BASE_URL = 'https://api.bodis.com/v2';
+
+        async function testAPI() {
+            const statusDiv = document.getElementById('status');
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                statusDiv.textContent = 'Testing API connection...';
+                
+                const endDate = new Date();
+                const startDate = new Date();
+                startDate.setDate(startDate.getDate() - 6);
+                
+                const requestBody = {
+                    "report_type": "day",
+                    "order_by": "date",
+                    "sort_order": "desc",
+                    "page": 1,
+                    "per_page": 10,
+                    "filter": {
+                        "date_range": [
+                            startDate.toISOString().split('T')[0],
+                            endDate.toISOString().split('T')[0]
+                        ]
+                    }
+                };
+                
+                console.log('Making API request:', requestBody);
+                
+                const response = await fetch(`${BODIS_API_BASE_URL}/reports/search`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${BODIS_API_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('API Response:', data);
+                    
+                    statusDiv.textContent = '✅ API Working!';
+                    
+                    if (data.metrics && data.metrics.data) {
+                        let html = '<h2>Revenue Data:</h2>';
+                        data.metrics.data.forEach(day => {
+                            html += `<p>${day.date}: $${day.credited_revenue}</p>`;
+                        });
+                        
+                        if (data.total) {
+                            html += `<h3>Total: $${data.total.credited_revenue}</h3>`;
+                        }
+                        
+                        resultsDiv.innerHTML = html;
+                    }
+                } else {
+                    const errorText = await response.text();
+                    statusDiv.textContent = `❌ API Error: ${response.status}`;
+                    resultsDiv.innerHTML = `<pre>${errorText}</pre>`;
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                statusDiv.textContent = '❌ Error: ' + error.message;
+                resultsDiv.innerHTML = '<p>Check browser console for details</p>';
+            }
+        }
+        
+        // Test the API when page loads
+        testAPI();
+    </script>
+</body>
+</html>
